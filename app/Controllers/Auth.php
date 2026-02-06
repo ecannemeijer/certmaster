@@ -44,4 +44,20 @@ class Auth extends BaseController
         session()->destroy();
         return redirect()->to(site_url('login'));
     }
+
+    public function checkSession()
+    {
+        // This endpoint checks if the user's session is still valid
+        if (session()->get('logged_in')) {
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Session is active'
+            ]);
+        } else {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Session expired'
+            ]);
+        }
+    }
 }

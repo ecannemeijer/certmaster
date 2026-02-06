@@ -13,6 +13,7 @@ $routes->get('/', 'Auth::login');
 $routes->get('login', 'Auth::login');
 $routes->post('login', 'Auth::authenticate');
 $routes->get('logout', 'Auth::logout');
+$routes->get('check-session', 'Auth::checkSession');
 
 // Protected routes (require authentication)
 $routes->group('', ['filter' => 'auth'], function($routes) {

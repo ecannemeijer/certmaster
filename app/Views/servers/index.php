@@ -18,9 +18,18 @@
     <!-- Servers List -->
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
         <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
-            <h2 class="text-xl font-bold text-gray-900">
-                <i class="fas fa-list mr-2 text-blue-600"></i>All Servers
-            </h2>
+            <div class="flex justify-between items-center">
+                <h2 class="text-xl font-bold text-gray-900">
+                    <i class="fas fa-list mr-2 text-blue-600"></i>All Servers
+                </h2>
+                <div class="flex items-center gap-2">
+                    <input type="text" id="serversSearchInput" placeholder="Search servers..." 
+                           class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button onclick="clearServersSearch()" class="px-3 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg text-sm transition">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                </div>
+            </div>
         </div>
         <div id="serversGrid" class="ag-theme-quartz" style="height: 600px;"></div>
     </div>
@@ -291,6 +300,17 @@ const serversGridOptions = {
     headerHeight: 50
 };
 
-const serversGrid = new agGrid.Grid(document.getElementById('serversGrid'), serversGridOptions);
+const serversGridApi = agGrid.createGrid(document.getElementById('serversGrid'), serversGridOptions);
+
+// Servers search functionality
+const serversSearchInput = document.getElementById('serversSearchInput');
+serversSearchInput.addEventListener('keyup', (e) => {
+    serversGridApi.setGridOption('quickFilterText', e.target.value);
+});
+
+function clearServersSearch() {
+    serversSearchInput.value = '';
+    serversGridApi.setGridOption('quickFilterText', '');
+}
 </script>
 <?= $this->endSection() ?>

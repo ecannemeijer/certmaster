@@ -95,6 +95,54 @@
                 setTimeout(() => alert.remove(), 500);
             });
         }, 5000);
+
+        // Session expiration check - Check every 5 minutes (300000 ms)
+        let sessionCheckInterval = setInterval(checkSessionStatus, 300000);
+
+        function checkSessionStatus() {
+            fetch('<?= site_url('check-session') ?>', {
+                method: 'GET',
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    // Session expired - redirect to login
+                    clearInterval(sessionCheckInterval);
+                    showSessionExpiredNotification();
+                }
+            })
+            .catch(error => {
+                console.error('Session check failed:', error);
+                // On network error, assume session might be expired
+            });
+        }
+
+        function showSessionExpiredNotification() {
+            // Create a full-screen notification
+            const notification = document.createElement('div');
+            notification.className = 'fixed inset-0 bg-red-50 z-[9999] flex items-center justify-center';
+            notification.innerHTML = `
+                <div class="bg-white rounded-lg shadow-2xl p-8 text-center max-w-md">
+                    <div class="text-5xl mb-4">
+                        <i class="fas fa-clock text-red-600"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Session Expired</h2>
+                    <p class="text-gray-600 mb-6">Your login session has expired for security reasons. You will be redirected to the login page.</p>
+                    <div class="flex gap-4">
+                        <button onclick="window.location.href = '<?= site_url('login') ?>'" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition">
+                            Go to Login
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(notification);
+
+            // Auto-redirect after 3 seconds
+            setTimeout(() => {
+                window.location.href = '<?= site_url('login') ?>';
+            }, 3000);
+        }
     </script>
 </body>
 </html>
