@@ -404,12 +404,13 @@ class Certificates extends BaseController
         $remoteKeyFile = $remotePath . $certificate['key_file'];
 
         // Copy certificate files with original filenames
-        $scpPemCmd = "scp -i {$privateKeyFile} -P {$sshPort} -o StrictHostKeyChecking=no {$pemFile} {$sshUser}@{$sshHost}:{$remotePemFile} 2>&1";
-        $scpKeyCmd = "scp -i {$privateKeyFile} -P {$sshPort} -o StrictHostKeyChecking=no {$keyFile} {$sshUser}@{$sshHost}:{$remoteKeyFile} 2>&1";
+        $scpPemCmd = "scp -i {$privateKeyFile} -P {$sshPort} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {$pemFile} {$sshUser}@{$sshHost}:{$remotePemFile} 2>&1";
+        $scpKeyCmd = "scp -i {$privateKeyFile} -P {$sshPort} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {$keyFile} {$sshUser}@{$sshHost}:{$remoteKeyFile} 2>&1";
 
         $commands = [];
 
         exec($scpPemCmd, $pemOutput, $pemReturn);
+        $pemOutput = $this->filterSSHOutput($pemOutput);
         $commands[] = [
             'name' => 'Upload Certificate File',
             'command' => $scpPemCmd,
@@ -418,6 +419,7 @@ class Certificates extends BaseController
         ];
 
         exec($scpKeyCmd, $keyOutput, $keyReturn);
+        $keyOutput = $this->filterSSHOutput($keyOutput);
         $commands[] = [
             'name' => 'Upload Key File',
             'command' => $scpKeyCmd,
@@ -439,8 +441,9 @@ class Certificates extends BaseController
         }
 
         // Restart Apache
-        $restartCmd = "ssh -i {$privateKeyFile} -p {$sshPort} -o StrictHostKeyChecking=no {$sshUser}@{$sshHost} '{$server['apache_restart_command']}' 2>&1";
+        $restartCmd = "ssh -i {$privateKeyFile} -p {$sshPort} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {$sshUser}@{$sshHost} '{$server['apache_restart_command']}' 2>&1";
         exec($restartCmd, $restartOutput, $restartReturn);
+        $restartOutput = $this->filterSSHOutput($restartOutput);
 
         $commands[] = [
             'name' => 'Restart Apache',
@@ -480,6 +483,37 @@ class Certificates extends BaseController
             'message' => 'Certificate deployed successfully',
             'commands' => $commands
         ]);
+    }
+
+    private function filterSSHOutput($output)
+    {
+        if (empty($output)) {
+            return ['Certificate file transferred successfully'];
+        }
+
+        // Filter out harmless SSH warnings
+        $filtered = [];
+        foreach ($output as $line) {
+            // Skip the annoying .ssh directory warnings
+            if (strpos($line, 'Could not create directory') !== false) continue;
+            if (strpos($line, 'Failed to add the host to the list of known hosts') !== false) continue;
+            if (strpos($line, 'Permission denied') !== false && strpos($line, '.ssh') !== false) continue;
+            // Skip "Permanently added" host key message
+            if (strpos($line, 'Permanently added') !== false) continue;
+            if (strpos($line, 'to the list of known hosts') !== false) continue;
+            
+            // Keep any actual error messages
+            if (!empty(trim($line))) {
+                $filtered[] = $line;
+            }
+        }
+
+        // If no meaningful output after filtering, return success message
+        if (empty($filtered)) {
+            return ['File transferred successfully'];
+        }
+
+        return $filtered;
     }
 
     private function parseCertificate($pemContent)

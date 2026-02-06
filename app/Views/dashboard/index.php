@@ -155,6 +155,10 @@ function deployCertificate(serverId) {
     });
 }
 
+function closeDeploymentModal() {
+    document.getElementById('deploymentStatusModal').classList.add('hidden');
+}
+
 function viewCertificateInfo(serverId, hostname) {
     fetch(`<?= site_url('certificates/info/') ?>${serverId}`, {
         method: 'GET',
@@ -296,12 +300,17 @@ function closeCertInfoModal() {
 </div>
 
 <!-- Deployment Status Modal -->
-<div id="deploymentStatusModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+<div id="deploymentStatusModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" onclick="if(event.target === this) closeDeploymentModal()">
     <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
         <div class="mt-3">
-            <h3 class="text-lg leading-6 font-bold text-gray-900 mb-4">
-                <i class="fas fa-rocket mr-2 text-blue-600"></i>Deployment Status
-            </h3>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg leading-6 font-bold text-gray-900">
+                    <i class="fas fa-rocket mr-2 text-blue-600"></i>Deployment Status
+                </h3>
+                <button onclick="closeDeploymentModal()" class="text-gray-400 hover:text-gray-600 transition">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
             <div id="deploymentOutput" class="space-y-4 px-6 py-3">
                 <p class="text-blue-600"><i class="fas fa-spinner fa-spin"></i> Deploying certificate...</p>
             </div>
