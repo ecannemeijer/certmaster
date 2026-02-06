@@ -60,4 +60,15 @@ class Auth extends BaseController
             ]);
         }
     }
+
+    public function getVersion()
+    {
+        // Return application version information
+        return $this->response->setJSON([
+            'success' => true,
+            'name' => env('app.name', 'CertMaster'),
+            'version' => env('app.version', '1.0.0'),
+            'description' => env('app.description', 'SSL Certificate Management System')
+        ]);
+    }
 }

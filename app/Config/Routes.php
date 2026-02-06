@@ -14,6 +14,7 @@ $routes->get('login', 'Auth::login');
 $routes->post('login', 'Auth::authenticate');
 $routes->get('logout', 'Auth::logout');
 $routes->get('check-session', 'Auth::checkSession');
+$routes->get('api/version', 'Auth::getVersion');
 
 // Protected routes (require authentication)
 $routes->group('', ['filter' => 'auth'], function($routes) {

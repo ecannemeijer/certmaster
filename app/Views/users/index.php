@@ -125,11 +125,6 @@
         <form id="changePasswordForm" class="space-y-4">
             <input type="hidden" id="passwordUserId">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Current Password *</label>
-                <input type="password" id="oldPassword" name="old_password" required
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-            </div>
-            <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">New Password *</label>
                 <input type="password" id="newPassword" name="new_password" required
                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
@@ -360,12 +355,11 @@ function closePasswordModal(event) {
 
 function submitChangePassword() {
     const id = document.getElementById('passwordUserId').value;
-    const old_password = document.getElementById('oldPassword').value;
     const new_password = document.getElementById('newPassword').value;
     const new_password_confirm = document.getElementById('newPasswordConfirm').value;
     const errorsDiv = document.getElementById('passwordErrors');
 
-    if (!old_password || !new_password || !new_password_confirm) {
+    if (!new_password || !new_password_confirm) {
         errorsDiv.textContent = 'All fields are required';
         errorsDiv.classList.remove('hidden');
         return;
@@ -376,7 +370,7 @@ function submitChangePassword() {
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: `old_password=${encodeURIComponent(old_password)}&new_password=${encodeURIComponent(new_password)}&new_password_confirm=${encodeURIComponent(new_password_confirm)}`
+        body: `new_password=${encodeURIComponent(new_password)}&new_password_confirm=${encodeURIComponent(new_password_confirm)}`
     })
     .then(response => response.json())
     .then(data => {

@@ -240,18 +240,10 @@ class Users extends BaseController
      */
     public function updatePassword($id)
     {
-        $old_password = $this->request->getPost('old_password');
         $new_password = $this->request->getPost('new_password');
         $new_password_confirm = $this->request->getPost('new_password_confirm');
 
         // Validate input
-        if (!$old_password) {
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Current password is required'
-            ]);
-        }
-
         if (!$new_password) {
             return $this->response->setJSON([
                 'success' => false,
@@ -273,7 +265,7 @@ class Users extends BaseController
             ]);
         }
 
-        // Verify old password
+        // Verify user exists
         $user = \Config\Database::connect()
             ->table('users')
             ->where('id', $id)
@@ -284,13 +276,6 @@ class Users extends BaseController
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'User not found'
-            ]);
-        }
-
-        if (!password_verify($old_password, $user->password)) {
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Current password is incorrect'
             ]);
         }
 
