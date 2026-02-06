@@ -268,6 +268,13 @@ function viewCertificateInfo(serverId) {
     .then(data => {
         if (data.success) {
             const cert = data.certificate;
+            
+            // Check if certificate exists
+            if (!cert) {
+                alert('No certificate found for this server');
+                return;
+            }
+            
             let html = '<table class="w-full"><tbody>';
             
             if (cert.common_name) html += `<tr><td class="font-semibold text-gray-700 py-1">Common Name:</td><td class="text-gray-900 py-1">${cert.common_name}</td></tr>`;

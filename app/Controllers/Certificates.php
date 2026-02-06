@@ -148,29 +148,34 @@ class Certificates extends BaseController
 
         if ($certData['success']) {
             // Certificate found on server - use live data
-            return $this->response->setJSON($certData);
+            return $this->response->setJSON([
+                'success' => true,
+                'certificate' => $certData
+            ]);
         } else {
             // Fallback to uploaded certificate data
-            $certificate = $this->certificateModel->where('server_id', $serverId)
-                                                  ->where('is_active', 1)
-                                                  ->first();
+            $certificate = \Config\Database::connect()
+                ->table('certificates')
+                ->where('server_id', $serverId)
+                ->where('is_active', 1)
+                ->get()
+                ->getRow();
 
             if (!$certificate) {
                 return $this->response->setJSON(['success' => false, 'message' => 'No active certificate found']);
             }
 
             // Calculate days until expiry from uploaded certificate
-            $daysUntilExpiry = (strtotime($certificate['valid_until']) - time()) / (60 * 60 * 24);
+            $daysUntilExpiry = (strtotime($certificate->valid_until) - time()) / (60 * 60 * 24);
             
             // Parse certificate file for additional details
             $uploadPath = WRITEPATH . 'uploads/certificates/';
-            $pemFile = $uploadPath . $certificate['pem_file'];
+            $pemFile = $uploadPath . $certificate->pem_file;
             
             $certDetails = [
-                'success' => true,
-                'common_name' => $certificate['common_name'],
-                'valid_from' => $certificate['valid_from'],
-                'valid_until' => $certificate['valid_until'],
+                'common_name' => $certificate->common_name,
+                'valid_from' => $certificate->valid_from,
+                'valid_until' => $certificate->valid_until,
                 'days_until_expiry' => round($daysUntilExpiry),
                 'source' => 'uploaded'
             ];
@@ -215,7 +220,10 @@ class Certificates extends BaseController
                 }
             }
 
-            return $this->response->setJSON($certDetails);
+            return $this->response->setJSON([
+                'success' => true,
+                'certificate' => $certDetails
+            ]);
         }
     }
 

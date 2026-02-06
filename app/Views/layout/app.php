@@ -40,6 +40,9 @@
                         <a href="<?= site_url('logs') ?>" class="text-white hover:bg-blue-500 px-3 py-2 rounded-md text-sm font-medium transition">
                             <i class="fas fa-history mr-2"></i>Logs
                         </a>
+                        <a href="<?= site_url('users') ?>" class="text-white hover:bg-blue-500 px-3 py-2 rounded-md text-sm font-medium transition">
+                            <i class="fas fa-users mr-2"></i>Users
+                        </a>
                     </div>
                 </div>
                 <div class="flex items-center">
