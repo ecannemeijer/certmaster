@@ -538,4 +538,98 @@ class Certificates extends BaseController
             'valid_until' => date('Y-m-d H:i:s', $cert['validTo_time_t']),
         ];
     }
+
+    public function download($serverId, $fileType)
+    {
+        if (!session()->get('logged_in')) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Unauthorized']);
+        }
+
+        $server = $this->serverModel->find($serverId);
+        if (!$server) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Server not found']);
+        }
+
+        $certificate = \Config\Database::connect()
+            ->table('certificates')
+            ->where('server_id', $serverId)
+            ->where('is_active', 1)
+            ->get()
+            ->getRow();
+
+        if (!$certificate) {
+            return $this->response->setJSON(['success' => false, 'message' => 'No active certificate found']);
+        }
+
+        $uploadPath = WRITEPATH . 'uploads/certificates/';
+
+        if ($fileType === 'pem') {
+            $filePath = $uploadPath . $certificate->pem_file;
+            if (!file_exists($filePath)) {
+                return $this->response->setJSON(['success' => false, 'message' => 'Certificate file not found']);
+            }
+            
+            $fileContent = file_get_contents($filePath);
+            return $this->response
+                ->setHeader('Content-Type', 'application/x-pem-file')
+                ->setHeader('Content-Disposition', 'attachment; filename="' . basename($filePath) . '"')
+                ->setBody($fileContent);
+        } 
+        elseif ($fileType === 'key') {
+            $filePath = $uploadPath . $certificate->key_file;
+            if (!file_exists($filePath)) {
+                return $this->response->setJSON(['success' => false, 'message' => 'Key file not found']);
+            }
+            
+            $fileContent = file_get_contents($filePath);
+            return $this->response
+                ->setHeader('Content-Type', 'application/x-pem-file')
+                ->setHeader('Content-Disposition', 'attachment; filename="' . basename($filePath) . '"')
+                ->setBody($fileContent);
+        }
+        elseif ($fileType === 'both') {
+            // Download both certificate and key as a zip file
+            $pemFilePath = $uploadPath . $certificate->pem_file;
+            $keyFilePath = $uploadPath . $certificate->key_file;
+
+            if (!file_exists($pemFilePath) || !file_exists($keyFilePath)) {
+                return $this->response->setJSON(['success' => false, 'message' => 'One or both certificate files not found']);
+            }
+
+            // Create a temporary zip file
+            $zipPath = sys_get_temp_dir() . '/cert_' . uniqid() . '.zip';
+            $zip = new \ZipArchive();
+
+            if ($zip->open($zipPath, \ZipArchive::CREATE) !== true) {
+                return $this->response->setJSON(['success' => false, 'message' => 'Failed to create zip file']);
+            }
+
+            // Add files to zip
+            $zip->addFile($pemFilePath, basename($pemFilePath));
+            $zip->addFile($keyFilePath, basename($keyFilePath));
+            $zip->close();
+
+            // Read the zip file
+            if (!file_exists($zipPath)) {
+                return $this->response->setJSON(['success' => false, 'message' => 'Failed to generate zip file']);
+            }
+
+            $fileContent = file_get_contents($zipPath);
+            
+            // Clean up temp file
+            @unlink($zipPath);
+
+            // Determine server name for zip filename
+            $serverName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $server['name']);
+            $zipFileName = $serverName . '_certificate_' . date('Y-m-d') . '.zip';
+
+            return $this->response
+                ->setHeader('Content-Type', 'application/zip')
+                ->setHeader('Content-Disposition', 'attachment; filename="' . $zipFileName . '"')
+                ->setBody($fileContent);
+        }
+        else {
+            return $this->response->setJSON(['success' => false, 'message' => 'Invalid file type']);
+        }
+    }
 }

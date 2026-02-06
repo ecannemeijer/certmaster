@@ -36,6 +36,7 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
     $routes->post('certificates/store/(:num)', 'Certificates::store/$1');
     $routes->get('certificates/info/(:num)', 'Certificates::info/$1');
     $routes->post('certificates/deploy/(:num)', 'Certificates::deploy/$1');
+    $routes->get('certificates/download/(:num)/(:alpha)', 'Certificates::download/$1/$2');
 
     // User management
     $routes->get('users', 'Users::index');

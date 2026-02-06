@@ -130,42 +130,39 @@ const dashboardServerGridOptions = {
     columnDefs: [
         { 
             field: 'name', 
-            headerName: 'Server Name', 
-            width: 140,
+            headerName: 'Server', 
+            minWidth: 120,
             sort: 'asc',
             cellStyle: { fontWeight: 500, color: '#1f2937' }
         },
         { 
             field: 'hostname', 
             headerName: 'Hostname', 
-            width: 150
+            minWidth: 140,
+            flex: 1
         },
         { 
             field: 'ip_address', 
             headerName: 'IP Address', 
-            width: 140
-        },
-        { 
-            field: 'ssh_port', 
-            headerName: 'SSH Port', 
-            width: 110,
-            cellStyle: { textAlign: 'center' }
+            minWidth: 130,
+            flex: 1
         },
         {
             field: 'common_name',
-            headerName: 'Certificate CN',
-            width: 160,
+            headerName: 'Certificate',
+            minWidth: 120,
+            flex: 1,
             cellRenderer: function(params) {
-                if (!params.data.certificate) {
-                    return '<span class="text-gray-400 italic">No certificate</span>';
+                if (!params.data.common_name) {
+                    return '<span class="text-gray-400 italic text-xs">No cert</span>';
                 }
-                return params.data.certificate.common_name || '<span class="text-gray-400">Unknown</span>';
+                return '<span title="' + params.data.common_name + '">' + params.data.common_name + '</span>';
             }
         },
         {
             field: 'status',
-            headerName: 'Cert Status',
-            width: 140,
+            headerName: 'Status',
+            minWidth: 110,
             cellRenderer: function(params) {
                 const status = params.data.status || 'no_cert';
                 const statusMap = {
@@ -180,20 +177,26 @@ const dashboardServerGridOptions = {
         },
         {
             headerName: 'Actions',
-            width: 200,
+            minWidth: 260,
+            maxWidth: 300,
+            cellStyle: { display: 'flex', justifyContent: 'flex-start', gap: '8px' },
             cellRenderer: function(params) {
+                const hasCert = params.data.cert_id ? true : false;
                 return `
-                    <div class="action-buttons">
-                        <button onclick="deployCertificate(${params.data.id})" class="text-blue-600 hover:text-blue-900" title="Deploy Certificate">
+                    <div class="action-buttons flex gap-1 flex-wrap">
+                        ${hasCert ? `<button onclick="deployCertificate(${params.data.id})" class="text-blue-600 hover:text-blue-900 text-lg" title="Deploy">
                             <i class="fas fa-rocket"></i>
-                        </button>
-                        <button onclick="viewCertificateInfo(${params.data.id})" class="text-green-600 hover:text-green-900" title="View Certificate Info">
+                        </button>` : ''}
+                        ${hasCert ? `<button onclick="viewCertificateInfo(${params.data.id})" class="text-green-600 hover:text-green-900 text-lg" title="View Info">
                             <i class="fas fa-info-circle"></i>
-                        </button>
-                        <a href="<?= site_url('servers/edit/') ?>${params.data.id}" class="text-yellow-600 hover:text-yellow-900" title="Edit Server">
+                        </button>` : ''}
+                        ${hasCert ? `<button onclick="downloadBoth(${params.data.id})" class="text-cyan-600 hover:text-cyan-900 text-lg" title="Download certificate Files">
+                            <i class="fas fa-file-archive"></i>
+                        </button>` : ''}
+                        <a href="<?= site_url('servers/edit/') ?>${params.data.id}" class="text-yellow-600 hover:text-yellow-900 text-lg" title="Edit">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <a href="<?= site_url('servers') ?>" class="text-purple-600 hover:text-purple-900" title="Manage Servers">
+                        <a href="<?= site_url('servers') ?>" class="text-purple-600 hover:text-purple-900 text-lg" title="Manage">
                             <i class="fas fa-cog"></i>
                         </a>
                     </div>
@@ -206,13 +209,14 @@ const dashboardServerGridOptions = {
     paginationPageSize: 10,
     paginationPageSizeSelector: [10, 25, 50],
     defaultColDef: {
-        flex: 1,
-        minWidth: 100,
-        wrapText: true,
-        autoHeight: true
+        resizable: true,
+        sortable: true,
+        filter: true,
+        wrapText: false,
+        autoHeight: false
     },
-    rowHeight: 45,
-    headerHeight: 50
+    rowHeight: 48,
+    headerHeight: 48
 };
 
 const dashboardGridApi = agGrid.createGrid(document.getElementById('dashboardServerGrid'), dashboardServerGridOptions);
@@ -303,6 +307,11 @@ function viewCertificateInfo(serverId) {
 function closeCertInfoModal(event) {
     if (event && event.target !== event.currentTarget) return;
     document.getElementById('certInfoModal').classList.add('hidden');
+}
+
+// Download certificate and key files as zip
+function downloadBoth(serverId) {
+    window.location.href = `<?= site_url('certificates/download/') ?>${serverId}/both`;
 }
 </script>
 <?= $this->endSection() ?>

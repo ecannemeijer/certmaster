@@ -67,7 +67,7 @@
 
 <!-- Certificate Upload Modal -->
 <div id="certificateModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white max-h-96 overflow-y-auto">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white max-h-196 overflow-y-auto">
         <div class="mt-3">
             <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
                 <i class="fas fa-upload mr-2 text-green-600"></i>Upload Certificate
@@ -248,11 +248,11 @@ const serversGridOptions = {
             }
         },
         {
-            field: 'status',
+            field: 'cert_status',
             headerName: 'Cert Status',
             width: 140,
             cellRenderer: function(params) {
-                const status = params.data.status || 'no_cert';
+                const status = params.data.cert_status || 'no_cert';
                 const statusMap = {
                     'valid': { class: 'status-badge valid', icon: 'fa-check-circle', text: 'Valid' },
                     'expiring': { class: 'status-badge expiring', icon: 'fa-exclamation-circle', text: 'Expiring' },
